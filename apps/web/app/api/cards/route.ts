@@ -1,0 +1,28 @@
+import { NextResponse } from 'next/server';
+import { currentUser } from '../../../lib/auth';
+import { query } from '../../../lib/db';
+
+type CardRow = { id:string; slug:string; status:string; display_name:string; title:string|null; company:string|null; bio:string|null; updated_at:string };
+
+export async function GET() {
+  const user = currentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const result = await query<CardRow>(`SELECT id,slug,status,display_name,title,company,bio,updated_at FROM cards WHERE owner_user_id=$1 ORDER BY updated_at DESC`, [user.id]);
+  return NextResponse.json({ cards: result.rows });
+}
+
+export async function POST(request: Request) {
+  const user = currentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const body = await request.json().catch(() => ({}));
+  const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : '';
+  const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g,'') : '';
+  if (!displayName || slug.length < 3) return NextResponse.json({ error: 'Display name and valid slug are required' }, { status: 400 });
+  try {
+    const result = await query<CardRow>(`INSERT INTO cards(owner_user_id,organization_id,slug,display_name,title,company,bio,status) VALUES($1,$2,$3,$4,$5,$6,$7,'draft') RETURNING id,slug,status,display_name,title,company,bio,updated_at`, [user.id,user.organizationId ?? null,slug,displayName,body.title ?? null,body.company ?? null,body.bio ?? null]);
+    return NextResponse.json({ card: result.rows[0] }, { status: 201 });
+  } catch (error: any) {
+    if (error?.code === '23505') return NextResponse.json({ error: 'Slug is already in use' }, { status: 409 });
+    throw error;
+  }
+}
