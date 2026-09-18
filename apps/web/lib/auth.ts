@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 
 export type Role = 'owner' | 'admin' | 'member' | 'individual';
 export type SessionUser = { id: string; email: string; displayName: string; role: Role; organizationId?: string };
@@ -14,7 +14,7 @@ function secret() {
 }
 
 function sign(payload: string) {
-  return createHash('sha256').update(`${payload}.${secret()}`).digest('hex');
+  return createHmac('sha256', secret()).update(payload).digest('hex');
 }
 
 export function hashPassword(password: string) {
@@ -41,7 +41,9 @@ export function readSession(raw?: string | null): SessionUser | null {
   const [body, signature] = raw.split('.');
   if (!body || !signature) return null;
   const expected = sign(body);
-  if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  const actualBuffer = Buffer.from(signature, 'hex');
+  const expectedBuffer = Buffer.from(expected, 'hex');
+  if (actualBuffer.length !== expectedBuffer.length || !timingSafeEqual(actualBuffer, expectedBuffer)) return null;
   try {
     const parsed = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as { user: SessionUser; exp: number };
     if (parsed.exp < Date.now()) return null;
