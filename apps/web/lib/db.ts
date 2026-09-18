@@ -1,26 +1,5 @@
 import { Pool, PoolClient, QueryResultRow } from 'pg';
-
 let pool: Pool | undefined;
-
-export function db() {
-  if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not configured');
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 10, ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined });
-  return pool;
-}
-
-export async function query<T extends QueryResultRow>(text: string, values: unknown[] = []) {
-  return db().query<T>(text, values);
-}
-
-export async function transaction<T>(work: (client: PoolClient) => Promise<T>) {
-  const client = await db().connect();
-  try {
-    await client.query('BEGIN');
-    const result = await work(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally { client.release(); }
-}
+export function db(){if(!process.env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');if(!pool){const ssl=process.env.NODE_ENV==='production'?{rejectUnauthorized:process.env.DB_SSL_REJECT_UNAUTHORIZED!=='false'}:undefined;pool=new Pool({connectionString:process.env.DATABASE_URL,max:10,ssl});}return pool;}
+export async function query<T extends QueryResultRow>(text:string,values:unknown[]=[]){return db().query<T>(text,values)}
+export async function transaction<T>(work:(client:PoolClient)=>Promise<T>){const client=await db().connect();try{await client.query('BEGIN');const result=await work(client);await client.query('COMMIT');return result}catch(error){await client.query('ROLLBACK');throw error}finally{client.release()}}
