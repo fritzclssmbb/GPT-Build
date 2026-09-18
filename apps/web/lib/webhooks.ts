@@ -1,4 +1,4 @@
 import { createHmac } from 'crypto';import { query } from './db';
-export async function enqueueWebhook(cardId:string,eventName:string,payload:unknown){const endpoints=await query<any>(`SELECT id FROM webhook_endpoints WHERE active=true AND (card_id=$1 OR organization_id=(SELECT organization_id FROM cards WHERE id=$1))`,[cardId]);for(const e of endpoints.rows)await query(`INSERT INTO webhook_deliveries(endpoint_id,event_name,payload,status,next_attempt_at) VALUES($1,$2,$3,'pending',now())`,[e.id,eventName,JSON.stringify(payload)]);}
-export function webhookSignature(secret:string,body:string,timestamp:string){return createHmac('sha256',secret).update(`${timestamp}.${body}`).digest('hex');}
-export function retryDelaySeconds(attempt:number){return Math.min(3600,Math.pow(2,Math.max(0,attempt))*30);}
+export async function enqueueWebhook(cardId:string,eventName:string,payload:unknown){const endpoints=await query<{id:string}>(`SELECT id FROM webhook_endpoints WHERE active=true AND (card_id=$1 OR organization_id=(SELECT organization_id FROM cards WHERE id=$1))`,[cardId]);for(const e of endpoints.rows)await query(`INSERT INTO webhook_deliveries(endpoint_id,event_name,payload,status,next_attempt_at) VALUES($1,$2,$3::jsonb,'pending',now())`,[e.id,eventName,JSON.stringify(payload)]);}
+export function webhookSignature(secret:string,body:string,timestamp:string){return createHmac('sha256',secret).update(`${timestamp}.${body}`).digest('hex')}
+export function retryDelaySeconds(attempt:number){return Math.min(3600,Math.pow(2,Math.max(0,attempt))*30)}
