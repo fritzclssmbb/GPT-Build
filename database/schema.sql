@@ -108,7 +108,7 @@ CREATE TABLE webhook_endpoints (
   organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
   card_id uuid REFERENCES cards(id) ON DELETE CASCADE,
   url text NOT NULL,
-  signing_secret_hash text NOT NULL,
+  signing_secret_hash text NOT NULL,\n  signing_secret_ciphertext text,
   active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   CHECK (organization_id IS NOT NULL OR card_id IS NOT NULL)
