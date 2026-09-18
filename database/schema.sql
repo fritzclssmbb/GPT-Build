@@ -119,7 +119,7 @@ CREATE TABLE webhook_deliveries (
   endpoint_id uuid NOT NULL REFERENCES webhook_endpoints(id) ON DELETE CASCADE,
   event_name text NOT NULL,
   payload jsonb NOT NULL,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','delivered','failed','dead_letter')),
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','delivered','failed','dead_letter')),
   attempts integer NOT NULL DEFAULT 0,
   next_attempt_at timestamptz,
   last_http_status integer,
