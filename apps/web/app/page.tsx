@@ -1,4 +1,5 @@
-import { demoCard } from "@/lib/demo-card";\nimport ShapeGrid from "@/components/ShapeGrid";
+import { demoCard } from "@/lib/demo-card";
+import ShapeGrid from "@/components/ShapeGrid";
 
 export default function HomePage() {
   return (
