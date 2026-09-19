@@ -1,0 +1,16 @@
+import { NextResponse } from 'next/server';
+import { currentUser } from '../../../../../lib/auth';
+import { query, transaction } from '../../../../../lib/db';
+
+export async function POST(_:Request,{params}:{params:{id:string}}){
+ const u=currentUser();if(!u)return NextResponse.json({error:'Unauthorized'},{status:401});
+ const card=await query<any>(`SELECT * FROM cards WHERE id=$1 AND owner_user_id=$2 LIMIT 1`,[params.id,u.id]);
+ if(!card.rows[0])return NextResponse.json({error:'Not found'},{status:404});
+ const c=card.rows[0];
+ if(!c.display_name||!c.slug)return NextResponse.json({error:'Card is incomplete'},{status:400});
+ const result=await transaction(async client=>{
+  await client.query(`INSERT INTO card_versions(card_id,snapshot,created_by_user_id) VALUES($1,$2,$3)`,[c.id,JSON.stringify(c),u.id]);
+  return client.query(`UPDATE cards SET status='published',published_at=COALESCE(published_at,now()),updated_at=now() WHERE id=$1 AND owner_user_id=$2 RETURNING id,slug,status,published_at`,[c.id,u.id]);
+ });
+ return NextResponse.json({card:result.rows[0]});
+}

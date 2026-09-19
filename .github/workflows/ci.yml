@@ -1,0 +1,46 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fs_card
+          POSTGRES_PASSWORD: fs_card_ci
+          POSTGRES_DB: fs_card_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fs_card -d fs_card_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://fs_card:fs_card_ci@localhost:5432/fs_card_test
+      SESSION_SECRET: ci-only-session-secret-32-characters-minimum
+      ANALYTICS_SALT: ci-analytics-salt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Validate clean database migration
+        env:
+          PGPASSWORD: fs_card_ci
+        run: |
+          psql -h localhost -U fs_card -d fs_card_test -v ON_ERROR_STOP=1 -f database/schema.sql
+          psql -h localhost -U fs_card -d fs_card_test -v ON_ERROR_STOP=1 -f database/migrations/002_product_completion.sql
+          psql -h localhost -U fs_card -d fs_card_test -Atc "SELECT to_regclass('public.cards'), to_regclass('public.card_versions'), to_regclass('public.invitations');" | grep -q "cards|card_versions|invitations"
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
