@@ -1,9 +1,9 @@
-import { demoCard } from "@/lib/demo-card";
+import { demoCard } from "@/lib/demo-card";\nimport ShapeGrid from "@/components/ShapeGrid";
 
 export default function HomePage() {
   return (
     <main>
-      <section className="hero">
+      <section className="hero heroEnhanced"><div className="heroGrid" aria-hidden="true"><ShapeGrid speed={0.32} squareSize={44} direction="diagonal" borderColor="rgba(136,240,185,.12)" hoverFillColor="rgba(38,208,124,.18)" hoverTrailAmount={5} /></div>
         <div>
           <div className="eyebrow">FS Softwares · Digital Identity Platform</div>
           <h1>One card. One profile. One professional identity.</h1>
