@@ -51,12 +51,14 @@ export function readSession(raw?: string | null): SessionUser | null {
   } catch { return null; }
 }
 
-export function currentUser() {
-  return readSession(cookies().get(SESSION_COOKIE)?.value);
+export async function currentUser() {
+  const store = await cookies();
+  return readSession(store.get(SESSION_COOKIE)?.value);
 }
 
-export function setSession(user: SessionUser) {
-  cookies().set(SESSION_COOKIE, createSession(user), {
+export async function setSession(user: SessionUser) {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, createSession(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -65,7 +67,7 @@ export function setSession(user: SessionUser) {
   });
 }
 
-export function clearSession() { cookies().delete(SESSION_COOKIE); }
+export async function clearSession() { const store = await cookies(); store.delete(SESSION_COOKIE); }
 
 export function can(role: Role, action: 'billing'|'brand'|'members'|'analytics'|'own-card') {
   const grants: Record<Role, string[]> = {
