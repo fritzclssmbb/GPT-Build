@@ -1,0 +1,1 @@
+import { redirect } from "next/navigation";import { currentUser } from "@/lib/auth";import WebhookAdmin from "./WebhookAdmin";export default function WebhooksPage(){const u=currentUser();if(!u)redirect("/login");return <main><WebhookAdmin/></main>}
