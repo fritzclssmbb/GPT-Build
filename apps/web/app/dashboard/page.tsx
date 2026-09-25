@@ -4,7 +4,7 @@ import { query } from "@/lib/db";
 
 type Card={id:string;slug:string;status:string;display_name:string;title:string|null;company:string|null};
 export default async function Dashboard(){
- const user=currentUser();if(!user)redirect("/login");
+ const user=await currentUser();if(!user)redirect("/login");
  const cards=await query<Card>(`SELECT id,slug,status,display_name,title,company FROM cards WHERE owner_user_id=$1 ORDER BY updated_at DESC`,[user.id]);
  const active=cards.rows[0];let totals={views:0,unique_visitors:0,vcard_downloads:0,leads:0};
  if(active){const r=await query<typeof totals>(`SELECT count(*) FILTER(WHERE event_type='view')::int views,count(DISTINCT visitor_hash) FILTER(WHERE event_type='view')::int unique_visitors,count(*) FILTER(WHERE event_type='vcard_download')::int vcard_downloads,count(*) FILTER(WHERE event_type='lead_submit')::int leads FROM analytics_events WHERE card_id=$1 AND created_at>=now()-interval '30 days'`,[active.id]);totals=r.rows[0]??totals;}
