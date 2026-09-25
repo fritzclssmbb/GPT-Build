@@ -28,6 +28,20 @@ This repository is prepared for a Netlify-connected Git deployment. Configure pr
 
 Required application secrets are documented in `.env.example`. Run the database schema/migrations against the production PostgreSQL instance before enabling customer access.
 
+## Production pilot checklist
+
+Before customer access:
+
+- Provision managed PostgreSQL with TLS and backups enabled.
+- Apply `database/schema.sql` followed by `database/migrations/002_product_completion.sql`.
+- Configure every production variable from `.env.example` in the hosting environment; never commit real values.
+- Set `NEXT_PUBLIC_APP_URL` to the final HTTPS deployment URL.
+- Deploy the feature release and verify `/api/health` returns HTTP 200 with `status: ok` and `database: ok`.
+- Smoke-test register, login/logout, card create/update/publish, public card, lead capture, QR/vCard and organization access.
+- Confirm HTTPS, security headers and database backup/restore procedures before onboarding pilot customers.
+
+A 503 response from `/api/health` means the application must not be treated as ready for customer traffic.
+
 ## Current release boundary
 
 Core card, public profile, lead and organization flows are implemented. Self-service billing, production merchant integration, privileged MFA/OAuth, full webhook administration, dependency/security closure and broad E2E validation remain commercial release gates. Do not represent those target capabilities as live until validated.
