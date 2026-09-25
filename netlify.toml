@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NPM_FLAGS = "--include=dev"
+
+# Next.js runtime/SSR is handled by Netlify's current Next.js integration.
+# Production secrets must be configured in Netlify environment settings.
