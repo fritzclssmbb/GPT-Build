@@ -33,7 +33,9 @@ Required application secrets are documented in `.env.example`. Run the database 
 Before customer access:
 
 - Provision managed PostgreSQL with TLS and backups enabled.
-- Apply `database/schema.sql` followed by `database/migrations/002_product_completion.sql`.
+- Apply `database/schema.sql`, then migrations in numeric order: `database/migrations/002_product_completion.sql` and `database/migrations/003_webhook_operations.sql`.
+- Do not enable webhook processing until migration 003 is applied; it adds delivery recovery timestamps and queue indexing required by the worker.
+- Webhook operations: use `/webhooks` to manage endpoints and inspect/retry deliveries. Configure `WORKER_SECRET` and a 32-byte base64 `WEBHOOK_ENCRYPTION_KEY` before enabling the internal processor.
 - Configure every production variable from `.env.example` in the hosting environment; never commit real values.
 - Set `NEXT_PUBLIC_APP_URL` to the final HTTPS deployment URL.
 - Deploy the feature release and verify `/api/health` returns HTTP 200 with `status: ok` and `database: ok`.
