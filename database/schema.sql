@@ -127,6 +127,7 @@ CREATE TABLE webhook_deliveries (
   last_http_status integer,
   last_error text,
   created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
   delivered_at timestamptz
 );
 
