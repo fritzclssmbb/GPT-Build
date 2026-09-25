@@ -1,39 +1,39 @@
-# FS Softwares — Digital Business Card Platform
+# Digi-IP Hub
 
-A full product baseline for a multi-tenant digital business card SaaS under **FS Softwares**, by **TophComm Engineering & System Solutions Inc.**
+**Digi-IP Hub** is the commercial digital identity platform by **FS Softwares**, operated and sold by **TophComm Systems**.
 
-## Included in this build branch
+## Commercial pilot
 
-- `apps/web/` — runnable Next.js + TypeScript Phase 1 application shell with branded landing page, card builder shell, server-rendered public card, vCard download and QR generation.
-- `prototype/index.html` — dependency-free interactive product prototype covering card builder, public card, organization administration, analytics, leads and plan gating.
-- `database/schema.sql` — PostgreSQL-oriented core schema for organizations, users, memberships, cards, links, media, leads, analytics, webhooks, subscriptions and audit logs.
-- `docs/FS_DIGITAL_CARD_BUILD_PLAN.md` — end-to-end production architecture, modules, API surface, security baseline, acceptance tests and delivery stages.
+The active pilot is a multi-tenant Next.js/PostgreSQL SaaS for professional digital identity: card creation and publishing, public profiles, QR/vCard sharing, consent-based lead capture, analytics and organization governance.
 
-## Run the Next.js application
+Payment priority for the pilot:
+1. GCash — primary online checkout.
+2. Maya — secondary.
+3. Bank transfer / credit or debit card — supported commercial paths as merchant integrations are activated.
 
-Requirements: Node.js 20+ and npm.
+No payment credential, merchant secret or production database secret belongs in source control.
+
+## Run locally
+
+Requirements: Node.js 20+ and PostgreSQL.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+## Netlify pilot deployment
 
-Current implemented routes:
+This repository is prepared for a Netlify-connected Git deployment. Configure production environment variables in the Netlify project settings, not in Git. The pilot site name can use `digi-ip-hub` if available; Netlify determines final `.netlify.app` availability at project creation.
 
-- `/` — branded product landing page.
-- `/builder` — Phase 1 card builder implementation shell.
-- `/u/fritz-suarez` — server-rendered public demo card.
-- `/api/cards/fritz-suarez/vcard` — generated `.vcf` contact download.
-- `/api/cards/fritz-suarez/qr` — generated SVG QR code pointing to the public card URL.
+Required application secrets are documented in `.env.example`. Run the database schema/migrations against the production PostgreSQL instance before enabling customer access.
 
-## Implementation boundary
+## Current release boundary
 
-The application now has a real runnable frontend/public-card layer, but card data still uses a typed demo fixture. Authentication, persistence, organization policy enforcement, billing and lead submission are deliberately not faked. The next stage is to connect these screens to the PostgreSQL/API architecture already defined in this repository.
+Core card, public profile, lead and organization flows are implemented. Self-service billing, production merchant integration, privileged MFA/OAuth, full webhook administration, dependency/security closure and broad E2E validation remain commercial release gates. Do not represent those target capabilities as live until validated.
 
-## Production direction
+## Ownership
 
-The recommended production implementation uses Next.js/TypeScript, a dedicated API/service layer, PostgreSQL, object storage, Redis-backed background jobs and server-enforced RBAC. Public cards are server-rendered and cacheable; privileged operations are audited.
-
-See `docs/FS_DIGITAL_CARD_BUILD_PLAN.md` for the complete build plan.
+Product: Digi-IP Hub  
+Brand: FS Softwares  
+Seller/operator: TophComm Systems
