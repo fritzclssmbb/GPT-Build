@@ -1,0 +1,13 @@
+import { redirect } from "next/navigation";
+import { currentUser } from "@/lib/auth";
+import { query } from "@/lib/db";
+
+type Card={id:string;slug:string;status:string;display_name:string;title:string|null;company:string|null};
+export default async function Dashboard(){
+ const user=await currentUser();if(!user)redirect("/login");
+ const cards=await query<Card>(`SELECT id,slug,status,display_name,title,company FROM cards WHERE owner_user_id=$1 ORDER BY updated_at DESC`,[user.id]);
+ const active=cards.rows[0];let totals={views:0,unique_visitors:0,vcard_downloads:0,leads:0};
+ if(active){const r=await query<typeof totals>(`SELECT count(*) FILTER(WHERE event_type='view')::int views,count(DISTINCT visitor_hash) FILTER(WHERE event_type='view')::int unique_visitors,count(*) FILTER(WHERE event_type='vcard_download')::int vcard_downloads,count(*) FILTER(WHERE event_type='lead_submit')::int leads FROM analytics_events WHERE card_id=$1 AND created_at>=now()-interval '30 days'`,[active.id]);totals=r.rows[0]??totals;}
+ const stats=[["Profile Views",totals.views],["Unique Visitors",totals.unique_visitors],["Contact Saves",totals.vcard_downloads],["Captured Leads",totals.leads]];
+ return <main><div className="eyebrow">FS SOFTWARES · COMMAND CENTER</div><h1>Digital Identity Dashboard</h1><p>Your live operational view for cards, engagement and captured opportunities.</p><div className="grid">{stats.map(([label,value])=><div className="card" key={label}><div className="eyebrow">{label}</div><div className="metric">{value}</div><span className="chip">Last 30 days</span></div>)}</div><section className="hero" style={{marginTop:18}}><div className="card"><div className="eyebrow">ACTIVE CARD</div>{active?<><h2>{active.display_name}</h2><p>{active.title} · {active.company}</p><div className="chips"><span className="chip">{active.status}</span><span className="chip">QR ready</span></div><div className="actions"><a className="btn btnPrimary" href="/builder">Edit Card</a>{active.status==="published"&&<a className="btn" href={`/u/${active.slug}`}>Public View</a>}</div></>:<><h2>No card yet</h2><p>Create your first professional card to start collecting engagement data.</p><a className="btn btnPrimary" href="/builder">Create Card</a></>}</div><div className="card"><div className="eyebrow">PORTFOLIO</div><h2>{cards.rowCount??0} card{(cards.rowCount??0)===1?"":"s"}</h2><p>Draft, published and inactive cards attached to your account.</p><div className="actions"><a className="btn" href="/analytics">Analytics</a><a className="btn" href="/leads">Leads</a>{user.organizationId&&<a className="btn" href="/org">Organization</a>}</div></div></section></main>
+}

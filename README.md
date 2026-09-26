@@ -1,1 +1,55 @@
-# GPT-Build
+# Digi-IP Hub
+
+**Digi-IP Hub** is the commercial digital identity platform by **FS Softwares**, operated and sold by **TophComm Systems**.
+
+## Commercial pilot
+
+The active pilot is a multi-tenant Next.js/PostgreSQL SaaS for professional digital identity: card creation and publishing, public profiles, QR/vCard sharing, consent-based lead capture, analytics and organization governance.
+
+Payment priority for the pilot:
+1. GCash — primary online checkout.
+2. Maya — secondary.
+3. Bank transfer / credit or debit card — supported commercial paths as merchant integrations are activated.
+
+No payment credential, merchant secret or production database secret belongs in source control.
+
+## Run locally
+
+Requirements: Node.js 20+ and PostgreSQL.
+
+```bash
+npm install
+npm run dev
+```
+
+## Netlify pilot deployment
+
+This repository is prepared for a Netlify-connected Git deployment. Configure production environment variables in the Netlify project settings, not in Git. The pilot site name can use `digi-ip-hub` if available; Netlify determines final `.netlify.app` availability at project creation.
+
+Required application secrets are documented in `.env.example`. Run the database schema/migrations against the production PostgreSQL instance before enabling customer access.
+
+## Production pilot checklist
+
+Before customer access:
+
+- Provision managed PostgreSQL with TLS and backups enabled.
+- Apply `database/schema.sql`, then migrations in numeric order: `database/migrations/002_product_completion.sql` and `database/migrations/003_webhook_operations.sql`.
+- Do not enable webhook processing until migration 003 is applied; it adds delivery recovery timestamps and queue indexing required by the worker.
+- Webhook operations: use `/webhooks` to manage endpoints and inspect/retry deliveries. Configure `WORKER_SECRET` and a 32-byte base64 `WEBHOOK_ENCRYPTION_KEY` before enabling the internal processor.
+- Configure every production variable from `.env.example` in the hosting environment; never commit real values.
+- Set `NEXT_PUBLIC_APP_URL` to the final HTTPS deployment URL.
+- Deploy the feature release and verify `/api/health` returns HTTP 200 with `status: ok` and `database: ok`.
+- Smoke-test register, login/logout, card create/update/publish, public card, lead capture, QR/vCard and organization access.
+- Confirm HTTPS, security headers and database backup/restore procedures before onboarding pilot customers.
+
+A 503 response from `/api/health` means the application must not be treated as ready for customer traffic.
+
+## Current release boundary
+
+Core card, public profile, lead and organization flows are implemented. Self-service billing, production merchant integration, privileged MFA/OAuth, full webhook administration, dependency/security closure and broad E2E validation remain commercial release gates. Do not represent those target capabilities as live until validated.
+
+## Ownership
+
+Product: Digi-IP Hub  
+Brand: FS Softwares  
+Seller/operator: TophComm Systems

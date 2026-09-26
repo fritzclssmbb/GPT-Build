@@ -1,0 +1,2 @@
+import BuilderStudio from "./BuilderStudio";
+export default function BuilderPage(){return <main><div className="eyebrow">FS SOFTWARES · CARD STUDIO</div><h1>Design your professional identity.</h1><p>Edit the presentation profile and see the card respond instantly. The production Card API supports authenticated create, update, publish, links, media and analytics workflows.</p><BuilderStudio/></main>}
