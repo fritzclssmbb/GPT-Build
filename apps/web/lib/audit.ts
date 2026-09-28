@@ -1,0 +1,2 @@
+import { query } from './db';
+export async function audit(actorUserId:string|null,organizationId:string|null,action:string,targetType?:string,targetId?:string,metadata:Record<string,unknown>={}){await query(`INSERT INTO audit_logs(organization_id,actor_user_id,action,target_type,target_id,metadata) VALUES($1,$2,$3,$4,$5,$6)`,[organizationId,actorUserId,action,targetType??null,targetId??null,JSON.stringify(metadata)]);}
