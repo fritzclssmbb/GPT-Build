@@ -16,7 +16,8 @@ function esc(value: string) {
   return value.replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const result = await query<Card>(
     "SELECT id,slug,display_name,title,company,phones,emails FROM cards WHERE id=$1 AND status='published' LIMIT 1",
     [id]
