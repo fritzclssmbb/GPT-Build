@@ -3,8 +3,9 @@ import { query } from "@/lib/db";
 import { safeHttpUrl } from "@/lib/security";
 
 type Row={id:string;card_id:string;url:string};
-export async function GET(request:Request,{params}:{params:{id:string}}){
- const result=await query<Row>(`SELECT l.id,l.card_id,l.url FROM link_blocks l JOIN cards c ON c.id=l.card_id WHERE l.id=$1 AND c.status='published' LIMIT 1`,[params.id]);
+export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
+ const {id}=await params;
+ const result=await query<Row>(`SELECT l.id,l.card_id,l.url FROM link_blocks l JOIN cards c ON c.id=l.card_id WHERE l.id=$1 AND c.status='published' LIMIT 1`,[id]);
  const link=result.rows[0];
  if(!link)return NextResponse.json({error:"Link not found"},{status:404});
  const destination=safeHttpUrl(link.url);
