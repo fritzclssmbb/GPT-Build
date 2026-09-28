@@ -5,6 +5,7 @@ import { safeHttpUrl } from "@/lib/security";
 type Card={id:string;primary_cta:unknown};
 function destination(value:unknown){if(!value||typeof value!=="object")return null;const url=(value as Record<string,unknown>).url;return typeof url==="string"?safeHttpUrl(url):null;}
 export async function GET(request:Request,{params}:{params:Promise<{slug:string}>}){
+ const {slug}=await params;
  const result=await query<Card>("SELECT id,primary_cta FROM cards WHERE slug=$1 AND status='published' LIMIT 1",[slug]);
  const card=result.rows[0];if(!card)return NextResponse.json({error:"Card not found"},{status:404});
  const url=destination(card.primary_cta);if(!url)return NextResponse.json({error:"CTA unavailable"},{status:404});
