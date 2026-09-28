@@ -19,7 +19,7 @@ function esc(value: string) {
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const result = await query<Card>(
     "SELECT id,slug,display_name,title,company,phones,emails FROM cards WHERE id=$1 AND status='published' LIMIT 1",
-    [params.id]
+    [id]
   );
   const card = result.rows[0];
   if (!card) return NextResponse.json({ error: "Card not found" }, { status: 404 });
