@@ -13,6 +13,11 @@ For a new database, apply and record these files in order:
 1. `database/schema.sql`
 2. `database/migrations/002_product_completion.sql`
 3. `database/migrations/003_webhook_operations.sql`
+4. `database/migrations/004_assisted_payments.sql`
+5. `database/migrations/005_seller_operator_controls.sql`
+6. `database/migrations/006_seller_mfa_challenges.sql`
+
+Migration 006 stores expiring challenge records only; it does not provide an MFA verifier or authorize payment approval. Seller review must remain read-only until that separate security gate is implemented and tested.
 
 Take a provider snapshot or logical backup immediately before any production schema migration. Apply migrations first to a staging/restored copy when possible.
 
