@@ -33,8 +33,11 @@ Required application secrets are documented in `.env.example`. Run the database 
 Before customer access:
 
 - Provision managed PostgreSQL with TLS and backups enabled.
-- Apply `database/schema.sql`, then migrations in numeric order: `database/migrations/002_product_completion.sql` and `database/migrations/003_webhook_operations.sql`.
+- Apply `database/schema.sql`, then **all** migrations in numeric order: `002_product_completion.sql`, `003_webhook_operations.sql`, `004_assisted_payments.sql`, `005_seller_operator_controls.sql`, and `006_seller_mfa_challenges.sql` from `database/migrations/`.
 - Do not enable webhook processing until migration 003 is applied; it adds delivery recovery timestamps and queue indexing required by the worker.
+- Do not expose payment-order endpoints before migrations 004 and 005 have been applied. Migration 006 provides seller MFA challenge storage but **does not implement or validate MFA**.
+- Keep pilot pricing disabled until seller-approved prices are set server-side using `PILOT_PRICE_PRO_PHP_MINOR`, `PILOT_PRICE_BUSINESS_PHP_MINOR`, and `PILOT_PRICE_ENTERPRISE_PHP_MINOR` (PHP centavos). Do not publish payment destination details before merchant account ownership is verified.
+- Seller review at `/seller/payments` is read-only. Never provision payment approval based solely on a seller database flag, a stored MFA timestamp, or a customer-submitted reference.
 - Webhook operations: use `/webhooks` to manage endpoints and inspect/retry deliveries. Configure `WORKER_SECRET` and a 32-byte base64 `WEBHOOK_ENCRYPTION_KEY` before enabling the internal processor.
 - Configure every production variable from `.env.example` in the hosting environment; never commit real values.
 - Set `NEXT_PUBLIC_APP_URL` to the final HTTPS deployment URL.
@@ -46,7 +49,7 @@ A 503 response from `/api/health` means the application must not be treated as r
 
 ## Current release boundary
 
-Core card, public profile, lead and organization flows are implemented. Self-service billing, production merchant integration, privileged MFA/OAuth, full webhook administration, dependency/security closure and broad E2E validation remain commercial release gates. Do not represent those target capabilities as live until validated.
+Core card, public profile, lead and organization flows are implemented. Self-service billing and automatic activation, production merchant integration, privileged MFA/OAuth, dependency/security closure and broad E2E validation remain commercial release gates. Webhook administration and read-only assisted-payment review are implemented at repository level but still require deployment and runtime acceptance. Do not represent those target capabilities as live until validated.
 
 ## Ownership
 
