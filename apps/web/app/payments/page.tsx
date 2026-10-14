@@ -1,0 +1,2 @@
+import { redirect } from 'next/navigation';import { currentUser } from '@/lib/auth';import PaymentPanel from './PaymentPanel';
+export default async function PaymentsPage(){const user=await currentUser();if(!user)redirect('/login');return <main><div className="eyebrow">COMMERCIAL PILOT · PAYMENTS</div><h1>Payment Center</h1><p>View payment orders and submit transaction references for seller verification. Submitted references do not activate paid plans.</p><PaymentPanel/></main>;}
