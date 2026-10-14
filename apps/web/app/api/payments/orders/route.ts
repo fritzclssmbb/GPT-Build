@@ -20,6 +20,8 @@ export async function POST(request:Request){
  if(!/^\/legal\/terms\/[a-zA-Z0-9._-]{1,80}$/.test(configuredTermsUrl))return NextResponse.json({error:'Published commercial terms are not configured'},{status:503});
  const configuredMonths=process.env.PILOT_BILLING_PERIOD_MONTHS;
  if(!configuredVersion||!configuredMonths||!/^(?:[1-9]|[12][0-9]|3[0-6])$/.test(configuredMonths))return NextResponse.json({error:'Commercial terms are not configured for purchase'},{status:503});
+ const approval=await query<{id:string}>(`SELECT id FROM legal_policy_approvals WHERE policy_type='commercial_terms' AND version=$1 AND revoked_at IS NULL AND effective_at<=now() LIMIT 1`,[configuredVersion]);
+ if(!approval.rows.length)return NextResponse.json({error:'Commercial terms have not been approved'},{status:503});
  if(acceptedVersion!==configuredVersion||configuredTermsUrl!==`/legal/terms/${configuredVersion}`||body.acceptTerms!==true)return NextResponse.json({error:'Current commercial terms must be accepted'},{status:400});
  if(!Number.isInteger(seats)||seats<1||seats>100000)return NextResponse.json({error:'Valid seat count required'},{status:400});
  if(seats!==1)return NextResponse.json({error:'Multi-seat pricing is not yet configured; only single-seat orders are supported'},{status:503});
