@@ -1,0 +1,8 @@
+'use client';
+import { useEffect,useState } from 'react';
+type Order={id:string;organization_id:string|null;user_id:string|null;plan_tier:string;amount_minor:string;currency:string;method:string;status:string;customer_reference:string|null;submitted_at:string|null};
+export default function SellerReviewQueue(){
+ const [orders,setOrders]=useState<Order[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState('');
+ useEffect(()=>{let active=true;fetch('/api/seller/payments',{cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error||'Seller access unavailable');if(active)setOrders(d.orders||[])}).catch(e=>{if(active)setError(e instanceof Error?e.message:'Unable to load orders')}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
+ return <section className="card"><h2>Submitted payments</h2><p>Read-only seller review. Verify settlement using the seller's trusted financial records. Approval and subscription activation are disabled until the separate MFA security gate is implemented.</p>{loading?<p>Loading review queue…</p>:error?<p role="alert">{error}</p>:orders.length===0?<p>No submitted payment orders awaiting review.</p>:<div className="dataTable">{orders.map(o=><div className="dataRow" key={o.id}><div><strong>{o.plan_tier.toUpperCase()} · {o.method.toUpperCase()}</strong><p>PHP {(Number(o.amount_minor)/100).toFixed(2)} · {o.status}</p><small>Order: {o.id}</small></div><div><p>Reference: {o.customer_reference||'Not supplied'}</p><small>Submitted: {o.submitted_at?new Date(o.submitted_at).toLocaleString():'Not recorded'}</small></div></div>)}</div>}</section>;
+}
