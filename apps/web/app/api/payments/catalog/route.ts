@@ -14,6 +14,6 @@ export async function GET(){
  const plans=['pro','business','enterprise'] as const;
  const prices:Record<string,string>={};
  for(const plan of plans){const raw=process.env['PILOT_PRICE_'+plan.toUpperCase()+'_PHP_MINOR']||'';if(/^[1-9][0-9]{0,11}$/.test(raw)&&BigInt(raw)<=1000000000000n)prices[plan]=raw;}
- const enabled=validMonths&&Boolean(version)&&validTermsUrl;
+ const enabled=validMonths&&Boolean(version)&&validTermsUrl&&termsUrl===`/legal/terms/${version}`;
  return NextResponse.json({billingPeriodMonths:validMonths?Number(months):null,termsVersion:version||null,termsUrl:enabled?termsUrl:null,pricesMinor:enabled?prices:{},availablePlans:enabled?Object.keys(prices):[],maxSeats:1},{headers:{'Cache-Control':'private, no-store'}});
 }
