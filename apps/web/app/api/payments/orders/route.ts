@@ -19,7 +19,7 @@ export async function POST(request:Request){
  if(!configuredVersion||!configuredMonths||!/^(?:[1-9]|[12][0-9]|3[0-6])$/.test(configuredMonths))return NextResponse.json({error:'Commercial terms are not configured for purchase'},{status:503});
  if(acceptedVersion!==configuredVersion||body.acceptTerms!==true)return NextResponse.json({error:'Current commercial terms must be accepted'},{status:400});
  if(!Number.isInteger(seats)||seats<1||seats>100000)return NextResponse.json({error:'Valid seat count required'},{status:400});
- if(plan==='pro'&&seats!==1)return NextResponse.json({error:'Pro orders support one seat'},{status:400});
+ if(seats!==1)return NextResponse.json({error:'Multi-seat pricing is not yet configured; only single-seat orders are supported'},{status:503});
  if(!(plan in catalog)||!['gcash','maya'].includes(method))return NextResponse.json({error:'Unsupported plan or payment method'},{status:400});
  const configured=process.env[catalog[plan]];
  if(!configured||!/^[1-9][0-9]{0,11}$/.test(configured))return NextResponse.json({error:'This plan is not yet available for purchase'},{status:503});
