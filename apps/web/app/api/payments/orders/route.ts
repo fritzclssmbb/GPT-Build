@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query,transaction } from '@/lib/db';
 import { requireSameOrigin } from '@/lib/security';
 
 // Pilot price catalog is deliberately disabled until the seller approves pricing.
@@ -24,7 +24,10 @@ export async function POST(request:Request){
   if(m.rows[0].role!=='owner')return NextResponse.json({error:'Only the organization owner can create payment orders'},{status:403});
   org=user.organizationId;
  }
- const result=await query<{id:string;plan_tier:string;amount_minor:string;currency:string;method:string;status:string}>(`INSERT INTO payment_orders(organization_id,user_id,plan_tier,amount_minor,method) VALUES($1,$2,$3,$4,$5) RETURNING id,plan_tier,amount_minor,currency,method,status`,[org,org?null:user.id,plan,amount.toString(),method]);
- await query(`INSERT INTO audit_logs(organization_id,actor_user_id,action,target_type,target_id,metadata) VALUES($1,$2,'payment.order_created','payment_order',$3,$4::jsonb)`,[org,user.id,result.rows[0].id,JSON.stringify({plan,method})]);
- return NextResponse.json({order:result.rows[0],instructions:'Await seller-issued payment instructions. Do not transfer to unverified account details.'},{status:201});
+ const result=await transaction(async client=>{
+ const result=await client.query<{id:string;plan_tier:string;amount_minor:string;currency:string;method:string;status:string}>(`INSERT INTO payment_orders(organization_id,user_id,plan_tier,amount_minor,method) VALUES($1,$2,$3,$4,$5) RETURNING id,plan_tier,amount_minor,currency,method,status`,[org,org?null:user.id,plan,amount.toString(),method]);
+ await client.query(`INSERT INTO audit_logs(organization_id,actor_user_id,action,target_type,target_id,metadata) VALUES($1,$2,'payment.order_created','payment_order',$3,$4::jsonb)`,[org,user.id,result.rows[0].id,JSON.stringify({plan,method})]);
+ return result;
+ });
+ return NextResponse.json({order:result.rows[0],instructions:'Await seller-issued payment instructions. Do not transfer to unverified account details.'},{status:201,headers:{'Cache-Control':'private, no-store'}});
 }
