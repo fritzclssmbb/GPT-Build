@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
+import { query } from '@/lib/db';
 
 // Display approved prices before acceptance; never expose merchant credentials.
 export async function GET(){
@@ -14,6 +15,7 @@ export async function GET(){
  const plans=['pro','business','enterprise'] as const;
  const prices:Record<string,string>={};
  for(const plan of plans){const raw=process.env['PILOT_PRICE_'+plan.toUpperCase()+'_PHP_MINOR']||'';if(/^[1-9][0-9]{0,11}$/.test(raw)&&BigInt(raw)<=1000000000000n)prices[plan]=raw;}
- const enabled=process.env.PILOT_TERMS_PUBLISHED==='true'&&validMonths&&Boolean(version)&&validTermsUrl&&termsUrl===`/legal/terms/${version}`;
+ const approved=version?await query<{id:string}>(`SELECT id FROM legal_policy_approvals WHERE policy_type='commercial_terms' AND version=$1 AND revoked_at IS NULL AND effective_at<=now() LIMIT 1`,[version]):null;
+ const enabled=Boolean(approved?.rows.length)&&process.env.PILOT_TERMS_PUBLISHED==='true'&&validMonths&&Boolean(version)&&validTermsUrl&&termsUrl===`/legal/terms/${version}`;
  return NextResponse.json({billingPeriodMonths:validMonths?Number(months):null,termsVersion:version||null,termsUrl:enabled?termsUrl:null,pricesMinor:enabled?prices:{},availablePlans:enabled?Object.keys(prices):[],maxSeats:1},{headers:{'Cache-Control':'private, no-store'}});
 }
