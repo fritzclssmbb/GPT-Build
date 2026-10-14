@@ -15,6 +15,8 @@ export async function POST(request:Request){
  const seats=body.seats;
  const acceptedVersion=typeof body.termsVersion==='string'?body.termsVersion:'';
  const configuredVersion=process.env.PILOT_TERMS_VERSION;
+ const configuredTermsUrl=process.env.PILOT_TERMS_URL||'';
+ if(!/^\\/legal\\/terms\\/[a-zA-Z0-9._-]{1,80}$/.test(configuredTermsUrl))return NextResponse.json({error:'Published commercial terms are not configured'},{status:503});
  const configuredMonths=process.env.PILOT_BILLING_PERIOD_MONTHS;
  if(!configuredVersion||!configuredMonths||!/^(?:[1-9]|[12][0-9]|3[0-6])$/.test(configuredMonths))return NextResponse.json({error:'Commercial terms are not configured for purchase'},{status:503});
  if(acceptedVersion!==configuredVersion||body.acceptTerms!==true)return NextResponse.json({error:'Current commercial terms must be accepted'},{status:400});
